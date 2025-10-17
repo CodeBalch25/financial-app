@@ -99,17 +99,19 @@ router.get('/analysis', (req, res) => {
           const suggestions = [];
 
           // Rule 1: Categories over 30% of income
-          expenses.forEach(exp => {
-            const percentage = (exp.total / totalIncome) * 100;
-            if (percentage > 30) {
-              suggestions.push({
-                type: 'high_spending',
-                category: exp.category,
-                message: `${exp.category} spending is ${percentage.toFixed(1)}% of your income. Consider reducing by 10-15%.`,
-                potential_savings: exp.total * 0.15
-              });
-            }
-          });
+          if (totalIncome > 0) {
+            expenses.forEach(exp => {
+              const percentage = (exp.total / totalIncome) * 100;
+              if (percentage > 30) {
+                suggestions.push({
+                  type: 'high_spending',
+                  category: exp.category,
+                  message: `${exp.category} spending is ${percentage.toFixed(1)}% of your income. Consider reducing by 10-15%.`,
+                  potential_savings: exp.total * 0.15
+                });
+              }
+            });
+          }
 
           // Rule 2: Many small transactions (possible subscription bloat)
           expenses.forEach(exp => {
@@ -139,7 +141,7 @@ router.get('/analysis', (req, res) => {
           res.json({
             total_income: totalIncome,
             total_expenses: totalExpenses,
-            savings_rate: ((actual_savings / totalIncome) * 100).toFixed(1),
+            savings_rate: totalIncome > 0 ? ((actual_savings / totalIncome) * 100).toFixed(1) : 0,
             expenses,
             suggestions,
             total_potential_savings: suggestions.reduce((sum, s) => sum + (s.potential_savings || 0), 0)
