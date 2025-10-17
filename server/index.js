@@ -22,10 +22,14 @@ const wealthRoutes = require('./routes/wealth');
 const incomeRoutes = require('./routes/income');
 const billsRoutes = require('./routes/bills');
 const aiRoutes = require('./routes/ai');
+const aiTokensRoutes = require('./routes/ai-tokens');
 const propertiesRoutes = require('./routes/properties');
 
 // Initialize database
 const db = require('./models/database');
+
+// Initialize AI scheduler (automated insights)
+const scheduler = require('./services/scheduler');
 
 // API Routes
 app.use('/api/auth', authRoutes);
@@ -36,6 +40,7 @@ app.use('/api/wealth', wealthRoutes);
 app.use('/api/income', incomeRoutes);
 app.use('/api/bills', billsRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/ai-tokens', aiTokensRoutes);
 app.use('/api/properties', propertiesRoutes);
 
 // Health check

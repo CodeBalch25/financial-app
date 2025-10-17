@@ -118,6 +118,17 @@ export const aiAPI = {
   generateWealthGrowthPlan: () => api.get('/ai/wealth-growth'),
 };
 
+// AI Tokens API
+export const aiTokensAPI = {
+  getAll: () => api.get('/ai-tokens'),
+  create: (data) => api.post('/ai-tokens', data),
+  toggle: (id) => api.put(`/ai-tokens/${id}/toggle`),
+  delete: (id) => api.delete(`/ai-tokens/${id}`),
+  test: (data) => api.post('/ai-tokens/test', data),
+  getLinks: () => api.get('/ai-tokens/links'),
+  getStatus: () => api.get('/ai-tokens/status'),
+};
+
 // Properties API
 export const propertiesAPI = {
   // Properties

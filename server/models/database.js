@@ -351,6 +351,51 @@ function initializeDatabase() {
     )
   `);
 
+  // AI tokens (encrypted storage for LLM API keys)
+  db.run(`
+    CREATE TABLE IF NOT EXISTS ai_tokens (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      service TEXT NOT NULL CHECK(service IN ('groq', 'huggingface', 'together', 'openrouter', 'anthropic')),
+      token_encrypted TEXT NOT NULL,
+      is_active INTEGER DEFAULT 1,
+      last_used DATETIME,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id),
+      UNIQUE(user_id, service)
+    )
+  `);
+
+  // AI insights history (automated and manual scans)
+  db.run(`
+    CREATE TABLE IF NOT EXISTS ai_insights_history (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      insight_type TEXT NOT NULL CHECK(insight_type IN ('daily', '5hour', 'manual', 'opportunity')),
+      insights_json TEXT NOT NULL,
+      metadata_json TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id)
+    )
+  `);
+
+  // AI scheduler configuration (user preferences for automated scans)
+  db.run(`
+    CREATE TABLE IF NOT EXISTS ai_scheduler_config (
+      id TEXT PRIMARY KEY,
+      user_id TEXT UNIQUE NOT NULL,
+      daily_enabled INTEGER DEFAULT 1,
+      daily_time TEXT DEFAULT '08:00',
+      five_hour_enabled INTEGER DEFAULT 1,
+      email_notifications INTEGER DEFAULT 1,
+      push_notifications INTEGER DEFAULT 1,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id)
+    )
+  `);
+
   console.log('Database tables initialized');
 }
 

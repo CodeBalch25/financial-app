@@ -13,6 +13,7 @@ import Income from './pages/Income';
 import Bills from './pages/Bills';
 import WealthGrowth from './pages/WealthGrowth';
 import Properties from './pages/Properties';
+import AISettings from './pages/AISettings';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -120,6 +121,12 @@ function App() {
             path="/properties"
             element={
               isAuthenticated ? <Properties /> : <Navigate to="/login" />
+            }
+          />
+          <Route
+            path="/ai-settings"
+            element={
+              isAuthenticated ? <AISettings /> : <Navigate to="/login" />
             }
           />
           <Route
