@@ -10,8 +10,12 @@ function Navigation({ user, onLogout }) {
 
   const isGroupActive = (paths) => paths.some(path => location.pathname === path);
 
-  const toggleDropdown = (dropdown) => {
-    setActiveDropdown(activeDropdown === dropdown ? null : dropdown);
+  const handleMouseEnter = (dropdown) => {
+    setActiveDropdown(dropdown);
+  };
+
+  const handleMouseLeave = () => {
+    setActiveDropdown(null);
   };
 
   return (
@@ -31,10 +35,13 @@ function Navigation({ user, onLogout }) {
             </Link>
           </li>
 
-          <li className="nav-dropdown">
+          <li
+            className="nav-dropdown"
+            onMouseEnter={() => handleMouseEnter('cashflow')}
+            onMouseLeave={handleMouseLeave}
+          >
             <button
               className={`nav-link dropdown-toggle ${isGroupActive(['/transactions', '/income', '/bills']) ? 'active' : ''}`}
-              onClick={() => toggleDropdown('cashflow')}
             >
               💸 Cash Flow
             </button>
@@ -68,10 +75,13 @@ function Navigation({ user, onLogout }) {
             </Link>
           </li>
 
-          <li className="nav-dropdown">
+          <li
+            className="nav-dropdown"
+            onMouseEnter={() => handleMouseEnter('wealth')}
+            onMouseLeave={handleMouseLeave}
+          >
             <button
               className={`nav-link dropdown-toggle ${isGroupActive(['/wealth', '/opportunities', '/wealth-growth', '/properties']) ? 'active' : ''}`}
-              onClick={() => toggleDropdown('wealth')}
             >
               💎 Wealth
             </button>
