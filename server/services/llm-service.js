@@ -73,7 +73,7 @@ class LLMService {
       const groq = new Groq({ apiKey: token });
 
       const response = await groq.chat.completions.create({
-        model: options.model || 'llama2-70b-4096',
+        model: options.model || 'llama-3.3-70b-versatile',
         messages: [
           {
             role: 'system',
@@ -107,7 +107,7 @@ class LLMService {
    */
   async callHuggingFace(token, prompt, options = {}) {
     try {
-      const model = options.model || 'mistralai/Mistral-7B-Instruct-v0.2';
+      const model = options.model || 'meta-llama/Llama-3.2-3B-Instruct';
       const url = `https://api-inference.huggingface.co/models/${model}`;
 
       const response = await axios.post(
