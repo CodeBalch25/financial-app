@@ -80,6 +80,19 @@ const predictBillAmounts = (billPayments) => {
   return predictions;
 };
 
+// Helper function to calculate monthly income based on frequency
+const calculateMonthlyIncome = (amount, frequency) => {
+  switch (frequency) {
+    case 'weekly': return amount * 52 / 12;
+    case 'biweekly': return amount * 26 / 12;
+    case 'monthly': return amount;
+    case 'quarterly': return amount / 3;
+    case 'annually': return amount / 12;
+    case 'variable': return amount;
+    default: return 0;
+  }
+};
+
 // Helper function to generate insights
 const generateInsights = (userData) => {
   const insights = [];
@@ -353,19 +366,6 @@ router.get('/insights', async (req, res) => {
         else resolve(row || { expenses: 0, income: 0 });
       });
     });
-
-    // Helper function for income calculation
-    const calculateMonthlyIncome = (amount, frequency) => {
-      switch (frequency) {
-        case 'weekly': return amount * 52 / 12;
-        case 'biweekly': return amount * 26 / 12;
-        case 'monthly': return amount;
-        case 'quarterly': return amount / 3;
-        case 'annually': return amount / 12;
-        case 'variable': return amount;
-        default: return 0;
-      }
-    };
 
     // Predict bill amounts
     const billPredictions = predictBillAmounts(bills);
