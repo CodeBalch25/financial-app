@@ -68,15 +68,6 @@ function Navigation({ user, onLogout }) {
             </Link>
           </li>
 
-          <li>
-            <Link
-              to="/ai-settings"
-              className={`nav-link ${isActive('/ai-settings') ? 'active' : ''}`}
-            >
-              🤖 AI Assistant
-            </Link>
-          </li>
-
           <li className="nav-dropdown">
             <button
               className={`nav-link dropdown-toggle ${isGroupActive(['/wealth', '/opportunities', '/wealth-growth', '/properties']) ? 'active' : ''}`}

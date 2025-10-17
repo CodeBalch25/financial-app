@@ -47,7 +47,7 @@ const predictBillAmounts = (billPayments) => {
         trend: 'stable'
       };
     }
-    predictions[payment.bill_name].amounts.push(payment.actual_amount);
+    predictions[payment.bill_name].amounts.push(payment.amount_paid);
   });
 
   // Calculate trend and prediction
@@ -223,6 +223,52 @@ const generateInsights = (userData) => {
   return insights;
 };
 
+// GET /api/ai/latest - Get latest AI-generated insights from history
+router.get('/latest', async (req, res) => {
+  try {
+    const userId = req.user.userId;
+
+    // Get the most recent AI insights
+    const latestInsights = await new Promise((resolve, reject) => {
+      db.get(
+        `SELECT insights_json, insight_type, created_at
+         FROM ai_insights_history
+         WHERE user_id = ?
+         ORDER BY created_at DESC
+         LIMIT 1`,
+        [userId],
+        (err, row) => {
+          if (err) reject(err);
+          else resolve(row);
+        }
+      );
+    });
+
+    if (!latestInsights) {
+      // No AI insights yet - trigger manual generation
+      return res.json({
+        insights: [],
+        message: 'No AI insights available yet. They will be generated automatically within 5 hours.',
+        last_updated: null
+      });
+    }
+
+    const insightsData = JSON.parse(latestInsights.insights_json);
+
+    res.json({
+      insights: insightsData.insights || [],
+      provider: insightsData.provider || 'groq',
+      insight_type: latestInsights.insight_type,
+      last_updated: latestInsights.created_at,
+      generated_at: insightsData.generated_at || latestInsights.created_at
+    });
+
+  } catch (error) {
+    console.error('Error fetching latest AI insights:', error);
+    res.status(500).json({ error: 'Failed to fetch AI insights' });
+  }
+});
+
 // GET /api/ai/insights - Get personalized financial insights
 router.get('/insights', async (req, res) => {
   try {
@@ -242,11 +288,11 @@ router.get('/insights', async (req, res) => {
 
     const bills = await new Promise((resolve, reject) => {
       db.all(`
-        SELECT b.bill_name, bp.actual_amount, bp.month
+        SELECT b.bill_name, bp.amount_paid, bp.month_year as month
         FROM bills b
         LEFT JOIN bill_payments bp ON b.id = bp.bill_id
-        WHERE b.user_id = ? AND bp.month >= date('now', '-6 months')
-        ORDER BY bp.month DESC
+        WHERE b.user_id = ? AND bp.month_year >= date('now', '-6 months')
+        ORDER BY bp.month_year DESC
       `, [userId], (err, rows) => {
         if (err) reject(err);
         else resolve(rows || []);
@@ -349,6 +395,50 @@ router.get('/insights', async (req, res) => {
   } catch (error) {
     console.error('Error generating insights:', error);
     res.status(500).json({ error: 'Failed to generate insights' });
+  }
+});
+
+// POST /api/ai/generate-now - Manually trigger AI insights generation
+router.post('/generate-now', async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const llmService = require('../services/llm-service');
+    const { v4: uuidv4 } = require('uuid');
+
+    // Get financial data
+    const scheduler = require('../services/scheduler');
+    const financialData = await scheduler.getFinancialData(userId);
+
+    // Generate AI insights using LLM
+    const insights = await llmService.generateFinancialInsights(userId, financialData);
+
+    // Save to history
+    const id = uuidv4();
+    await new Promise((resolve, reject) => {
+      db.run(
+        'INSERT INTO ai_insights_history (id, user_id, insight_type, insights_json) VALUES (?, ?, ?, ?)',
+        [id, userId, 'manual', JSON.stringify(insights)],
+        (err) => {
+          if (err) reject(err);
+          else resolve();
+        }
+      );
+    });
+
+    res.json({
+      success: true,
+      insights: insights.insights,
+      provider: insights.provider,
+      generated_at: insights.generated_at,
+      message: 'AI insights generated successfully!'
+    });
+
+  } catch (error) {
+    console.error('Error generating AI insights:', error);
+    res.status(500).json({
+      error: 'Failed to generate AI insights',
+      message: error.message
+    });
   }
 });
 
