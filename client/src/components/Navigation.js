@@ -1,22 +1,45 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import './Navigation.css';
 
 function Navigation({ user, onLogout }) {
   const location = useLocation();
   const [activeDropdown, setActiveDropdown] = useState(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const isActive = (path) => location.pathname === path;
 
   const isGroupActive = (paths) => paths.some(path => location.pathname === path);
 
   const handleMouseEnter = (dropdown) => {
-    setActiveDropdown(dropdown);
+    if (window.innerWidth >= 768) {
+      setActiveDropdown(dropdown);
+    }
   };
 
   const handleMouseLeave = () => {
+    if (window.innerWidth >= 768) {
+      setActiveDropdown(null);
+    }
+  };
+
+  const handleDropdownClick = (dropdown) => {
+    setActiveDropdown(activeDropdown === dropdown ? null : dropdown);
+  };
+
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false);
     setActiveDropdown(null);
   };
+
+  // Close mobile menu on route change
+  useEffect(() => {
+    closeMobileMenu();
+  }, [location.pathname]);
 
   return (
     <nav className="navbar">
@@ -25,7 +48,15 @@ function Navigation({ user, onLogout }) {
           <h2>💰 Timu Financial</h2>
         </div>
 
-        <ul className="nav-menu">
+        <button className="mobile-menu-toggle" onClick={toggleMobileMenu} aria-label="Toggle menu">
+          <span className={`hamburger ${isMobileMenuOpen ? 'open' : ''}`}>
+            <span></span>
+            <span></span>
+            <span></span>
+          </span>
+        </button>
+
+        <ul className={`nav-menu ${isMobileMenuOpen ? 'mobile-open' : ''}`}>
           <li>
             <Link
               to="/dashboard"
@@ -42,6 +73,7 @@ function Navigation({ user, onLogout }) {
           >
             <button
               className={`nav-link dropdown-toggle ${isGroupActive(['/transactions', '/income', '/bills']) ? 'active' : ''}`}
+              onClick={() => handleDropdownClick('cashflow')}
             >
               💸 Cash Flow
             </button>
@@ -82,6 +114,7 @@ function Navigation({ user, onLogout }) {
           >
             <button
               className={`nav-link dropdown-toggle ${isGroupActive(['/wealth', '/opportunities', '/wealth-growth', '/properties']) ? 'active' : ''}`}
+              onClick={() => handleDropdownClick('wealth')}
             >
               💎 Wealth
             </button>
